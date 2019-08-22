@@ -3,7 +3,7 @@ import numpy as np
 import math
 df = pd.read_csv('Householder.csv')
 # Drop ID, Weighting, Race, Gender, Education
-df.drop(['ID', 'Weighting', 'Race', 'Gender', 'Education'], axis=1, inplace=True)
+df.drop(['ID', 'Race', 'Gender', 'Education', 'CapitalLoss'], axis=1, inplace=True)
 
 ### Age Column
 # Age less than 1 is invalid
@@ -27,37 +27,56 @@ df.loc[mask, 'WorkClass'] = np.nan
 df['WorkClass'].fillna('Private', inplace=True)
 
 ### MaritalStatus column
+# Remove spaces
 for uniq in df['MaritalStatus'].unique():
     if isinstance(uniq, str):
         mask = df['MaritalStatus'] == uniq
         df.loc[mask, 'MaritalStatus'] = uniq[1:]
 
-# Remove Space in Occupation
+### Occupation column
+# Remove spaces
 for uniq in df['Occupation'].unique():
     if isinstance(uniq, str):
         mask = df['Occupation'] == uniq
         df.loc[mask, 'Occupation'] = uniq[1:]
 
 # Invalid value is '?'
-# Impute the invalid value
+# Impute the invalid values and missing values with "Prof-speciality"
+# because Occupation column is categorical and only mode is the valid option
 mask = df['Occupation'] == '?'
 df.loc[mask, 'Occupation'] = np.nan
 df['Occupation'].fillna('Prof-specialty', inplace=True)
 
-
+### Relationship column
+# Remove spaces
 for uniq in df['Relationship'].unique():
     if isinstance(uniq, str):
         mask = df['Relationship'] == uniq
         df.loc[mask, 'Relationship'] = uniq[1:]
 
-
+### CapitalLoss column
+# Impute missing values with 0 which is the median
+# because the data has great outliers (Skewed to left)
 df['CapitalLoss'].fillna(0, inplace=True)
+
+### CapitalGain column
+# Impute missing values with 0
 df['CapitalGain'].fillna(0, inplace=True)
+
+### CapitalAvg column
+# Impute with 0
 df['CapitalAvg'].fillna(0, inplace=True)
+
+### NumWorkingHoursPerWeek column
+# Impute with mean of 40
 df['NumWorkingHoursPerWeek'].fillna(40, inplace=True)
+
+### Sex column
+# Impute with 0 which is the mode
 df['Sex'].fillna(0, inplace=True)
 
-#country
+### Country column
+# 
 for uniq in df['Country'].unique():
     if isinstance(uniq, str):
         mask = df['Country'] == uniq
