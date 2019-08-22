@@ -18,7 +18,8 @@ df['Age'].fillna(df['Age'].mean(), inplace=True)
 for uniq in df['WorkClass'].unique():
     if isinstance(uniq, str):
         mask = df['WorkClass'] == uniq
-		df.loc[mask, 'WorkClass'] = uniq[1:]
+        df.loc[mask, 'WorkClass'] = uniq[1:]
+
 
 # Impute invalid and nan with "Private"
 # because WorkClass column is categorical and only mode is the valid option
@@ -76,7 +77,7 @@ df['NumWorkingHoursPerWeek'].fillna(40, inplace=True)
 df['Sex'].fillna(0, inplace=True)
 
 ### Country column
-# 
+# Remove spaces 
 for uniq in df['Country'].unique():
     if isinstance(uniq, str):
         mask = df['Country'] == uniq
