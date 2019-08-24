@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
-df = pd.read_csv('Householder.csv')
+df = pd.read_csv('HouseholderAtRisk.csv')
 # Drop ID, Weighting, Race, Gender, Education
 df.drop(['ID', 'Race', 'Gender', 'Education'], axis=1, inplace=True)
 
@@ -20,12 +20,15 @@ for uniq in df['WorkClass'].unique():
         mask = df['WorkClass'] == uniq
         df.loc[mask, 'WorkClass'] = uniq[1:]
 
-
-# Impute invalid and nan with "Private"
-# because WorkClass column is categorical and only mode is the valid option
 mask = df['WorkClass'] == '?'
 df.loc[mask, 'WorkClass'] = np.nan
 df['WorkClass'].fillna('Private', inplace=True)
+
+### Weighting column
+df['Weighting'].fillna(df['Weighting'].mean(), inplace=True)
+
+### NumYearsEducation column
+df['NumYearsEducation'].fillna(df['NumYearsEducation'].mean(), inplace=True)
 
 ### MaritalStatus column
 # Remove spaces
@@ -34,16 +37,14 @@ for uniq in df['MaritalStatus'].unique():
         mask = df['MaritalStatus'] == uniq
         df.loc[mask, 'MaritalStatus'] = uniq[1:]
 
+df['MaritalStatus'].fillna('Married-civ-spouse', inplace=True)
+
 ### Occupation column
-# Remove spaces
 for uniq in df['Occupation'].unique():
     if isinstance(uniq, str):
         mask = df['Occupation'] == uniq
         df.loc[mask, 'Occupation'] = uniq[1:]
 
-# Invalid value is '?'
-# Impute the invalid values and missing values with "Prof-speciality"
-# because Occupation column is categorical and only mode is the valid option
 mask = df['Occupation'] == '?'
 df.loc[mask, 'Occupation'] = np.nan
 df['Occupation'].fillna('Prof-specialty', inplace=True)
@@ -54,6 +55,8 @@ for uniq in df['Relationship'].unique():
     if isinstance(uniq, str):
         mask = df['Relationship'] == uniq
         df.loc[mask, 'Relationship'] = uniq[1:]
+
+df['Relationship'].fillna('Husband', inplace=True)
 
 ### CapitalLoss column
 # Impute missing values with 0 which is the median
@@ -70,7 +73,7 @@ df['CapitalAvg'].fillna(0, inplace=True)
 
 ### NumWorkingHoursPerWeek column
 # Impute with mean of 40
-df['NumWorkingHoursPerWeek'].fillna(40, inplace=True)
+df['NumWorkingHoursPerWeek'].fillna(df['NumWorkingHoursPerWeek'].mean(), inplace=True)
 
 ### Sex column
 # Impute with 0 which is the mode
@@ -91,6 +94,20 @@ mask = df['Country'] == 'US'
 df.loc[mask, 'Country'] = 'United-States'
 mask = df['Country'] == 'Hong'
 df.loc[mask, 'Country'] = 'Hong Kong'
+mask = df['Country'] == 'South'
+df.loc[mask, 'Country'] = 'United-States'
 df['Country'].fillna('United-States', inplace=True)
 
-
+### Data types
+# format Sex to binary
+data_type_map = {1.0: 1, 0.0: 0}
+df['Sex'] = df['Sex'].map(data_type_map)
+# format Age to int
+df['Age'] = df['Age'].astype(int)
+# # format NumYearsEducation to int
+df['NumYearsEducation'] = df['NumYearsEducation'].astype(int)
+# format Weighting to int
+df['Weighting'] = df['Weighting'].astype(int)
+# # format AtRisk to binary
+data_type_map = {'High': 1, 'Low': 0}
+df['AtRisk'] = df['AtRisk'].map(data_type_map)
