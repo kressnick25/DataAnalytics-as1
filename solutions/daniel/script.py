@@ -1,7 +1,30 @@
 import pandas as pd
 import numpy as np
 import math
-df = pd.read_csv('HouseholderAtRisk.csv')
+import pydot
+from io import BytesIO
+from sklearn.tree import export_graphviz
+df = pd.read_csv('./HouseholderAtRisk.csv')
+def analyse_feature_importance(dm_model, feature_names, n_to_display=20):
+    # grab feature importances from the model
+    importances = dm_model.feature_importances_
+    
+    # sort them out in descending order
+    indices = np.argsort(importances)
+    indices = np.flip(indices, axis=0)
+
+    # limit to 20 features, you can leave this out to print out everything
+    indices = indices[:n_to_display]
+
+    for i in indices:
+        print(feature_names[i] + ': ' + str(importances[i]))
+        
+def visualize_decision_tree(dm_model, feature_names, save_name):
+    dotfile = BytesIO()
+    export_graphviz(dm_model, out_file=dotfile, feature_names=feature_names)
+    graph = pydot.graph_from_dot_data(dotfile.getvalue())
+    graph[0].write_png(save_name) # saved in the following file
+
 # Drop ID, Weighting, Race, Gender, Education
 df.drop(['ID', 'Race', 'Gender', 'Education'], axis=1, inplace=True)
 
@@ -111,3 +134,30 @@ df['Weighting'] = df['Weighting'].astype(int)
 # # format AtRisk to binary
 data_type_map = {'High': 1, 'Low': 0}
 df['AtRisk'] = df['AtRisk'].map(data_type_map)
+
+
+### One-Hot Encoding
+df = pd.get_dummies(df)
+
+columns_to_transform = ['Age', 'Weighting','CapitalGain', 'CapitalAvg']
+df_log = df.copy()
+for col in columns_to_transform:
+    df_log[col] = df_log[col].apply(lambda x: x+1)
+    df_log[col] = df_log[col].apply(np.log)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+f, axes = plt.subplots(2,2, figsize=(10,10), sharex=False)
+# gift avg plots
+sns.distplot(df_log['Age'].dropna(), hist=False, ax=axes[0,0])
+sns.distplot(df_log['Weighting'].dropna(), hist=False, ax=axes[0,1])
+sns.distplot(df_log['CapitalGain'].dropna(), hist=False, ax=axes[1,0])
+sns.distplot(df_log['CapitalAvg'].dropna(), hist=False, ax=axes[1,1])
+# sns.distplot(df['NumYearsEducation'].dropna(), hist=False, ax=axes[1,0])
+# sns.distplot(df['CapitalLoss'].dropna(), hist=False, ax=axes[1,1])
+
+# # gift cnt plots
+
+# sns.distplot(df['NumWorkingHoursPerWeek'].dropna(), hist=False, ax=axes[1,2])
+
+plt.show()
